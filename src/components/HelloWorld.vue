@@ -11,7 +11,7 @@
     <template v-slot:top>
       <v-toolbar flat color="white">
         <v-toolbar-title>Postulantes Vivekonecta</v-toolbar-title>
-        <v-btn class="ml-3" small color="primary" @click="update()">Actualizar</v-btn>
+        <v-btn class="ml-3" small color="success" @click="update()">Actualizar</v-btn>
         <v-divider class="mx-4" inset vertical></v-divider>
         <v-spacer></v-spacer>
         <v-dialog v-model="dialog" max-width="500px">
@@ -81,13 +81,53 @@
             </v-card-text>
           </v-card>
         </v-dialog>
+         <v-dialog v-model="cardForm" max-width="500px">
+          <v-card>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue darken-1" text @click="closeForm">Cerrar</v-btn>
+            </v-card-actions>
+            <v-card-title>
+              <span class="headline">Datos Profesionales de {{formItem.name}}</span>
+            </v-card-title>
+
+            <v-card-text>
+              <v-container>
+                <p v-if="formItem.postulanteProf==undefined">No tiene formación</p>
+                <v-row v-else class="col-12" >
+                    <v-col cols="12" sm="12" md="6">
+                      <v-text-field v-model="formItem.postulanteProf.grado_formacion" disabled label="Grado de formación"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="12" md="6">
+                      <v-text-field v-model="formItem.postulanteProf.institucion" disabled label="Institución"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="12" md="6">
+                      <v-text-field v-model="formItem.postulanteProf.estado_estudios" disabled label="Estado de estudio"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="12" md="6">
+                      <v-text-field
+                        v-model="formItem.postulanteProf.rubro_carrera"
+                        disabled
+                        label="Rubro de carrera"
+                      ></v-text-field>
+                  </v-col>
+                  
+                </v-row>
+              </v-container>
+            </v-card-text>
+          </v-card>
+        </v-dialog>
       </v-toolbar>
+    </template>
+    <template v-slot:item.formacion="{ item }">
+      <v-btn small color="info" @click="formacionCard(item)">Formacion</v-btn>
+      <!-- <v-icon small @click="deleteItem(item)">delete</v-icon> -->
     </template>
     <template v-slot:item.agended="{ item }">
       <v-checkbox v-model="item.agended" @change="onCheckboxChange(item)"></v-checkbox>
     </template>
     <template v-slot:item.action="{ item }">
-      <v-btn small color="primary" @click="editItem(item)">Experiencia</v-btn>
+      <v-btn small color="info" @click="editItem(item)">Experiencia</v-btn>
       <!-- <v-icon small @click="deleteItem(item)">delete</v-icon> -->
     </template>
     <!-- <template v-slot:item.check="{ item }">
@@ -120,6 +160,7 @@ export default {
     postulantesProf: {},
     loginState: true,
     dialog: false,
+    cardForm: false,
     headers: [
       {
         text: "Nº",
@@ -133,15 +174,28 @@ export default {
       { text: "Correo", value: "email" },
       { text: "Teléfono", value: "phone" },
       { text: "Registro", value: "register" },
-      { text: "Formacion", value: "formacion" },
+      { text: "Formacion", value: "formacion", sortable: false },
       { text: "Agendad@", value: "agended" },
       { text: "Experiencia", value: "action", sortable: false }
     ],
     editedIndex: -1,
     editedItem: {
       name: "",
+      key: "",
       phone: "",
       register: "",
+      formacion: {},
+      agended: false,
+      experience: []
+    },
+    formIndex: -1,
+    formItem: {
+      name: "",
+      key: "",
+      phone: "",
+      register: "",
+      formacion: {},
+      agended: false,
       experience: []
     },
     indexAgended: -1,
@@ -150,14 +204,17 @@ export default {
       key: "",
       phone: "",
       register: "",
+      formacion: {},
       agended: false,
       experience: []
     },
     defaultItem: {
       name: "",
-      email: "",
+      key: "",
       phone: "",
       register: "",
+      formacion: {},
+      agended: false,
       experience: []
     }
   }),
@@ -172,6 +229,9 @@ export default {
   watch: {
     dialog(val) {
       val || this.close();
+    },
+    cardForm(val) {
+      val || this.closeForm();
     }
   },
 
@@ -191,6 +251,12 @@ export default {
       this.editedIndex = this.postulanteTable.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.dialog = true;
+    },
+    formacionCard(item) {
+      this.formIndex = this.postulanteTable.indexOf(item);
+      this.formItem = Object.assign({}, item);
+      this.cardForm = true;
+
     },
     onCheckboxChange(item) {
       var updates = {};
@@ -212,6 +278,13 @@ export default {
       setTimeout(() => {
         this.editedItem = Object.assign({}, this.defaultItem);
         this.editedIndex = -1;
+      }, 300);
+    },
+    closeForm() {
+      this.cardForm = false;
+      setTimeout(() => {
+        this.formItem = Object.assign({}, this.defaultItem);
+        this.formIndex = -1;
       }, 300);
     },
 
@@ -277,7 +350,8 @@ export default {
                 " " +
                 this.postulantesInfo[postulanteInfo].RegistradoDate.hour,
               agended: false,
-              experience: this.getExperiencePostulante(postulanteInfo)
+              experience: this.getExperiencePostulante(postulanteInfo),
+              postulanteProf: this.getFormacionPostulante(postulanteInfo)
             };
           } else {
             postulantes_table = {
@@ -294,7 +368,8 @@ export default {
                 " " +
                 this.postulantesInfo[postulanteInfo].RegistradoDate.hour,
               agended: this.postulantesInfo[postulanteInfo].agended,
-              experience: this.getExperiencePostulante(postulanteInfo)
+              experience: this.getExperiencePostulante(postulanteInfo),
+              postulanteProf: this.getFormacionPostulante(postulanteInfo)
             };
           }
         } else {
@@ -313,7 +388,8 @@ export default {
                 " " +
                 this.postulantesInfo[postulanteInfo].RegistradoDate.hour,
               agended: false,
-              experience: this.getExperiencePostulante(postulanteInfo)
+              experience: this.getExperiencePostulante(postulanteInfo),
+              postulanteProf: this.getFormacionPostulante(postulanteInfo)
             };
           } else {
             postulantes_table = {
@@ -330,7 +406,8 @@ export default {
                 " " +
                 this.postulantesInfo[postulanteInfo].RegistradoDate.hour,
               agended: this.postulantesInfo[postulanteInfo].agended,
-              experience: this.getExperiencePostulante(postulanteInfo)
+              experience: this.getExperiencePostulante(postulanteInfo),
+              postulanteProf: this.getFormacionPostulante(postulanteInfo)
             };
           }
         }
@@ -344,7 +421,7 @@ export default {
         this.postulantes.push(postulanteData);
         i++;
       }
-      console.log(this.postulanteTable);
+     // console.log(this.postulanteTable);
     },
     getLoginState: function(loginState) {
       this.loginState = loginState;
