@@ -1,7 +1,7 @@
 <template>
-  <v-card class="mx-auto" max-width="344" outlined>
+  <v-card class="mx-auto mt-5" max-width="344" >
     <v-form ref="form" v-model="valid" lazy-validation class="justify-center">
-      <v-text-field v-model="name" :counter="10" :rules="nameRules" label="Usuari@" required @input="message=''"></v-text-field>
+      <v-text-field v-model="name"  :rules="nameRules" label="Usuari@" required @input="message=''"></v-text-field>
 
       <v-text-field type="password" v-model="password" :rules="passwordRules" label="Contraseña" required @input="message=''"></v-text-field>
 

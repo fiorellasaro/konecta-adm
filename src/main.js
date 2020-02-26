@@ -4,6 +4,13 @@ import vuetify from './plugins/vuetify';
 import firebase from 'firebase';
 
 Vue.config.productionTip = false
+// import { Ripple } from 'vuetify/lib/directives'
+
+// Vue.use(vuetify, {
+//   directives: {
+//     Ripple
+//   }
+// })
 
 // Initialize Firebase
 const firebaseConfig = {

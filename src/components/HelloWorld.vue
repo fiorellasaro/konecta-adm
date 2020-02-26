@@ -5,61 +5,100 @@
     v-else
     :headers="headers"
     :items="postulanteTable"
-    sort-by="Nombre"
+    sort-by="number"
     class="elevation-1"
   >
     <template v-slot:top>
       <v-toolbar flat color="white">
         <v-toolbar-title>Postulantes Vivekonecta</v-toolbar-title>
+        <v-btn class="ml-3" small color="primary" @click="update()">Actualizar</v-btn>
         <v-divider class="mx-4" inset vertical></v-divider>
         <v-spacer></v-spacer>
         <v-dialog v-model="dialog" max-width="500px">
           <!-- <template v-slot:activator="{ on }">
             <v-btn color="primary" dark class="mb-2" v-on="on">New Item</v-btn>
-          </template> -->
+          </template>-->
           <v-card>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue darken-1" text @click="close">Cerrar</v-btn>
+            </v-card-actions>
             <v-card-title>
-              <span class="headline">{{ formTitle }}</span>
+              <span class="headline">{{ formTitle }} {{editedItem.name}}</span>
             </v-card-title>
 
             <v-card-text>
               <v-container>
-                <v-row>
-                  <v-col cols="12" sm="6" md="4">
-                    <v-text-field v-model="editedItem.name" label="Nombre"></v-text-field>
-                  </v-col>
-                  <v-col cols="12" sm="6" md="4">
-                    <v-text-field v-model="editedItem.email" label="Correo"></v-text-field>
-                  </v-col>
-                  <v-col cols="12" sm="6" md="4">
-                    <v-text-field v-model="editedItem.phone" label="Teléfono"></v-text-field>
-                  </v-col>
-                  <v-col cols="12" sm="6" md="4">
-                    <v-text-field v-model="editedItem.register" label="Registro"></v-text-field>
-                  </v-col>
-                  <v-col cols="12" sm="6" md="4">
-                    <v-text-field v-model="editedItem.experience" label="Experiencia"></v-text-field>
-                  </v-col>
+                <v-row v-for="(editedItem, index) in editedItem.experience" v-bind:key="index">
+                  <p v-if="editedItem.flag_se==1">No tiene experiencia</p>
+                  <div class="col-12" v-if="editedItem.flag_ec==1">
+                    <h2>En Call</h2>
+                    <v-col cols="12" sm="12" md="6">
+                      <v-text-field v-model="editedItem.ec_empresa" disabled label="Empresa"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="12" md="6">
+                      <v-text-field v-model="editedItem.ec_cliente" disabled label="Cliente"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="12" md="6">
+                      <v-text-field
+                        v-model="editedItem.ec_rubro_cliente"
+                        disabled
+                        label="Rubro cliente"
+                      ></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="12" md="6">
+                      <v-text-field v-model="editedItem.ec_segmento" disabled label="Segmento"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="12" md="6">
+                      <v-text-field
+                        v-model="editedItem.ec_tiempo_exp"
+                        disabled
+                        label="Tiempo exp. (meses)"
+                      ></v-text-field>
+                    </v-col>
+                  </div>
+                  <div class="col-12" v-if="editedItem.flag_eo==1">
+                    <h2>Otros</h2>
+                    <v-col cols="12" sm="12" md="6">
+                      <v-text-field v-model="editedItem.eo_empresa" disabled label="Empresa"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="12" md="6">
+                      <v-text-field v-model="editedItem.eo_rubro_empresa" disabled label="Rubro"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="12" md="6">
+                      <v-text-field v-model="editedItem.eo_puesto" disabled label="Puesto"></v-text-field>
+                    </v-col>
+                    <v-col cols="12" sm="12" md="6">
+                      <v-text-field
+                        v-model="editedItem.eo_tiempo_exp"
+                        disabled
+                        label="Tiempo exp. (meses)"
+                      ></v-text-field>
+                    </v-col>
+                  </div>
                 </v-row>
               </v-container>
             </v-card-text>
-
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn color="blue darken-1" text @click="close">Cancel</v-btn>
-              <v-btn color="blue darken-1" text @click="save">Save</v-btn>
-            </v-card-actions>
           </v-card>
         </v-dialog>
       </v-toolbar>
     </template>
-    <!-- <template v-slot:item.action="{ item }">
-      <v-icon small class="mr-2" @click="editItem(item)">edit</v-icon>
-      <v-icon small @click="deleteItem(item)">delete</v-icon>
+    <template v-slot:item.agended="{ item }">
+      <v-checkbox v-model="item.agended" @change="onCheckboxChange(item)"></v-checkbox>
     </template>
+    <template v-slot:item.action="{ item }">
+      <v-btn small color="primary" @click="editItem(item)">Experiencia</v-btn>
+      <!-- <v-icon small @click="deleteItem(item)">delete</v-icon> -->
+    </template>
+    <!-- <template v-slot:item.check="{ item }">
+      <v-btn small color="primary" @click="editItem(item)">Experiencia</v-btn>
+      <v-checkbox v-model="checkbox" :label="`Checkbox 1: ${checkbox.toString()}`"></v-checkbox>
+      <v-icon small @click="deleteItem(item)">delete</v-icon>
+    </template>-->
+    <!--
     <template v-slot:no-data>
       <v-btn color="primary" @click="initialize">Reset</v-btn>
-    </template> -->
+    </template>-->
   </v-data-table>
 </template>
 
@@ -83,38 +122,50 @@ export default {
     dialog: false,
     headers: [
       {
-        text: "Nombre y apellido",
+        text: "Nº",
         align: "left",
-        sortable: false,
+        value: "number"
+      },
+      {
+        text: "Nombre y apellido",
         value: "name"
       },
       { text: "Correo", value: "email" },
       { text: "Teléfono", value: "phone" },
       { text: "Registro", value: "register" },
-      { text: "Experiencia", value: "experience" },
-      { text: "Actions", value: "action", sortable: false }
+      { text: "Formacion", value: "formacion" },
+      { text: "Agendad@", value: "agended" },
+      { text: "Experiencia", value: "action", sortable: false }
     ],
-    desserts: [],
     editedIndex: -1,
     editedItem: {
       name: "",
-      email: "",
       phone: "",
       register: "",
-      experience: ""
+      experience: []
+    },
+    indexAgended: -1,
+    agendedItem: {
+      name: "",
+      key: "",
+      phone: "",
+      register: "",
+      agended: false,
+      experience: []
     },
     defaultItem: {
       name: "",
       email: "",
       phone: "",
       register: "",
-      experience: ""
+      experience: []
     }
   }),
 
   computed: {
     formTitle() {
-      return this.editedIndex === -1 ? "New Item" : "Edit Item";
+      // return this.editedIndex === -1 ? "New Item" : "Edit Item";
+      return "Datos Experiencia:";
     }
   },
 
@@ -125,7 +176,6 @@ export default {
   },
 
   created() {
-    this.initialize();
     this.writeUserData();
     this.writeUserExp();
     this.writeUserProf();
@@ -133,91 +183,28 @@ export default {
   mounted() {},
 
   methods: {
-    initialize() {
-      this.desserts = [
-        {
-          name: "Frozen Yogurt",
-          calories: 159,
-          fat: 6.0,
-          carbs: 24,
-          protein: 4.0
-        },
-        {
-          name: "Ice cream sandwich",
-          calories: 237,
-          fat: 9.0,
-          carbs: 37,
-          protein: 4.3
-        },
-        {
-          name: "Eclair",
-          calories: 262,
-          fat: 16.0,
-          carbs: 23,
-          protein: 6.0
-        },
-        {
-          name: "Cupcake",
-          calories: 305,
-          fat: 3.7,
-          carbs: 67,
-          protein: 4.3
-        },
-        {
-          name: "Gingerbread",
-          calories: 356,
-          fat: 16.0,
-          carbs: 49,
-          protein: 3.9
-        },
-        {
-          name: "Jelly bean",
-          calories: 375,
-          fat: 0.0,
-          carbs: 94,
-          protein: 0.0
-        },
-        {
-          name: "Lollipop",
-          calories: 392,
-          fat: 0.2,
-          carbs: 98,
-          protein: 0
-        },
-        {
-          name: "Honeycomb",
-          calories: 408,
-          fat: 3.2,
-          carbs: 87,
-          protein: 6.5
-        },
-        {
-          name: "Donut",
-          calories: 452,
-          fat: 25.0,
-          carbs: 51,
-          protein: 4.9
-        },
-        {
-          name: "KitKat",
-          calories: 518,
-          fat: 26.0,
-          carbs: 65,
-          protein: 7
-        }
-      ];
-    },
-
+    // onCheckboxChange(newValue) {
+    //   const title = "VALUE: " + (newValue ? "TRUE" : "FALSE");
+    //   console.log(title);
+    // },
     editItem(item) {
-      this.editedIndex = this.desserts.indexOf(item);
+      this.editedIndex = this.postulanteTable.indexOf(item);
       this.editedItem = Object.assign({}, item);
       this.dialog = true;
     },
+    onCheckboxChange(item) {
+      var updates = {};
+      updates["/POSTULANTES/" + item.key + "/agended/"] = item.agended;
+      firebase
+        .database()
+        .ref()
+        .update(updates);
+    },
 
     deleteItem(item) {
-      const index = this.desserts.indexOf(item);
+      const index = this.postulanteTable.indexOf(item);
       confirm("Are you sure you want to delete this item?") &&
-        this.desserts.splice(index, 1);
+        this.postulanteTable.splice(index, 1);
     },
 
     close() {
@@ -230,9 +217,9 @@ export default {
 
     save() {
       if (this.editedIndex > -1) {
-        Object.assign(this.desserts[this.editedIndex], this.editedItem);
+        Object.assign(this.postulanteTable[this.editedIndex], this.editedItem);
       } else {
-        this.desserts.push(this.editedItem);
+        this.postulanteTable.push(this.editedItem);
       }
       this.close();
     },
@@ -242,7 +229,6 @@ export default {
     },
     getPostulant(data) {
       this.postulantesInfo = data.val();
-      console.log(this.postulantesInfo);
     },
     dataUserErr(err) {
       console.log("error");
@@ -254,7 +240,6 @@ export default {
     },
     getPostulantExp(data) {
       this.postulantesExp = data.val();
-      console.log(this.postulantesExp);
     },
     dataUserExpErr(err) {
       console.log("error");
@@ -266,49 +251,100 @@ export default {
     },
     getPostulantProf(data) {
       this.postulantesProf = data.val();
-      console.log(this.postulantesProf);
     },
     dataUserProfErr(err) {
       console.log("error");
       console.log(err);
     },
     getPostulantData() {
+      let i = 1;
       for (let postulanteInfo in this.postulantesInfo) {
-         let postulantes_table;
-        if(this.postulantesInfo[postulanteInfo].nombre_social!= undefined){
-          postulantes_table = {
-          name:
-            this.postulantesInfo[postulanteInfo].nombre_social +
-            " " +
-          this.postulantesInfo[postulanteInfo].apellido_p,
-          email: this.postulantesInfo[postulanteInfo].correo,
-          phone: this.postulantesInfo[postulanteInfo].telefono,
-          register: this.postulantesInfo[postulanteInfo].RegistradoDate.date +" "+this.postulantesInfo[postulanteInfo].RegistradoDate.hour,
-          experience: ""
-        };
-        }else{
-          postulantes_table = {
-          name:
-            this.postulantesInfo[postulanteInfo].nombres+
-            " " +
-          this.postulantesInfo[postulanteInfo].apellido_p,
-          email: this.postulantesInfo[postulanteInfo].correo,
-          phone: this.postulantesInfo[postulanteInfo].telefono,
-          register: this.postulantesInfo[postulanteInfo].RegistradoDate.date +" "+this.postulantesInfo[postulanteInfo].RegistradoDate.hour,
-          experience: ""
-        };
+        let postulantes_table;
 
+        if (this.postulantesInfo[postulanteInfo].nombre_social != undefined) {
+          if (this.postulantesInfo[postulanteInfo].agended == undefined) {
+            postulantes_table = {
+              number: i,
+              key: postulanteInfo,
+              name:
+                this.postulantesInfo[postulanteInfo].nombre_social +
+                " " +
+                this.postulantesInfo[postulanteInfo].apellido_p,
+              email: this.postulantesInfo[postulanteInfo].correo,
+              phone: this.postulantesInfo[postulanteInfo].telefono,
+              register:
+                this.postulantesInfo[postulanteInfo].RegistradoDate.date +
+                " " +
+                this.postulantesInfo[postulanteInfo].RegistradoDate.hour,
+              agended: false,
+              experience: this.getExperiencePostulante(postulanteInfo)
+            };
+          } else {
+            postulantes_table = {
+              number: i,
+              key: postulanteInfo,
+              name:
+                this.postulantesInfo[postulanteInfo].nombre_social +
+                " " +
+                this.postulantesInfo[postulanteInfo].apellido_p,
+              email: this.postulantesInfo[postulanteInfo].correo,
+              phone: this.postulantesInfo[postulanteInfo].telefono,
+              register:
+                this.postulantesInfo[postulanteInfo].RegistradoDate.date +
+                " " +
+                this.postulantesInfo[postulanteInfo].RegistradoDate.hour,
+              agended: this.postulantesInfo[postulanteInfo].agended,
+              experience: this.getExperiencePostulante(postulanteInfo)
+            };
+          }
+        } else {
+          if (this.postulantesInfo[postulanteInfo].agended == undefined) {
+            postulantes_table = {
+              number: i,
+              key: postulanteInfo,
+              name:
+                this.postulantesInfo[postulanteInfo].nombres +
+                " " +
+                this.postulantesInfo[postulanteInfo].apellido_p,
+              email: this.postulantesInfo[postulanteInfo].correo,
+              phone: this.postulantesInfo[postulanteInfo].telefono,
+              register:
+                this.postulantesInfo[postulanteInfo].RegistradoDate.date +
+                " " +
+                this.postulantesInfo[postulanteInfo].RegistradoDate.hour,
+              agended: false,
+              experience: this.getExperiencePostulante(postulanteInfo)
+            };
+          } else {
+            postulantes_table = {
+              number: i,
+              key: postulanteInfo,
+              name:
+                this.postulantesInfo[postulanteInfo].nombres +
+                " " +
+                this.postulantesInfo[postulanteInfo].apellido_p,
+              email: this.postulantesInfo[postulanteInfo].correo,
+              phone: this.postulantesInfo[postulanteInfo].telefono,
+              register:
+                this.postulantesInfo[postulanteInfo].RegistradoDate.date +
+                " " +
+                this.postulantesInfo[postulanteInfo].RegistradoDate.hour,
+              agended: this.postulantesInfo[postulanteInfo].agended,
+              experience: this.getExperiencePostulante(postulanteInfo)
+            };
+          }
         }
 
-
-        this.postulanteTable.push(postulantes_table)
+        this.postulanteTable.push(postulantes_table);
         let postulanteData = {
           postulanteinfoPersonal: this.postulantesInfo[postulanteInfo],
           postulanteExp: this.getExperiencePostulante(postulanteInfo),
           postulanteProf: this.getFormacionPostulante(postulanteInfo)
         };
         this.postulantes.push(postulanteData);
+        i++;
       }
+      console.log(this.postulanteTable);
     },
     getLoginState: function(loginState) {
       this.loginState = loginState;
@@ -334,6 +370,13 @@ export default {
         }
       }
     },
+    update() {
+      this.writeUserData();
+      this.writeUserExp();
+      this.writeUserProf();
+      this.postulanteTable = [];
+      this.getPostulantData();
+    }
   }
 };
 </script>
