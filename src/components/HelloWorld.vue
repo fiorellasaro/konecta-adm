@@ -249,9 +249,9 @@ export default {
       { text: "Experiencia", value: "action", sortable: false },
       { text: "Agendad@", value: "agended" },
       // { text: "Selector@", value: "selectore" },
-      { text: "Espontáneo", value: "espontaneo" },
+      // { text: "Espontáneo", value: "espontaneo" },
       // { text: "Disponibilidad", value: "disponibilidad" },
-      { text: "Resultado", value: "result" },
+      // { text: "Resultado", value: "result" },
       // { text: "IGC", value: "igc" },
       { text: "Registro", value: "register" }
     ],
