@@ -40,19 +40,13 @@
                       <v-text-field v-model="editedItem.ec_cliente" label="Cliente"></v-text-field>
                     </v-col>
                     <v-col cols="12" sm="12" md="6">
-                      <v-text-field
-                        v-model="editedItem.ec_rubro_cliente"
-                        label="Rubro cliente"
-                      ></v-text-field>
+                      <v-text-field v-model="editedItem.ec_rubro_cliente" label="Rubro cliente"></v-text-field>
                     </v-col>
                     <v-col cols="12" sm="12" md="6">
                       <v-text-field v-model="editedItem.ec_segmento" label="Segmento"></v-text-field>
                     </v-col>
                     <v-col cols="12" sm="12" md="6">
-                      <v-text-field
-                        v-model="editedItem.ec_tiempo_exp"
-                        label="Tiempo exp. (meses)"
-                      ></v-text-field>
+                      <v-text-field v-model="editedItem.ec_tiempo_exp" label="Tiempo exp. (meses)"></v-text-field>
                     </v-col>
                   </div>
                   <div class="col-12" v-if="editedItem.flag_eo==1">
@@ -67,10 +61,7 @@
                       <v-text-field v-model="editedItem.eo_puesto" label="Puesto"></v-text-field>
                     </v-col>
                     <v-col cols="12" sm="12" md="6">
-                      <v-text-field
-                        v-model="editedItem.eo_tiempo_exp"
-                        label="Tiempo exp. (meses)"
-                      ></v-text-field>
+                      <v-text-field v-model="editedItem.eo_tiempo_exp" label="Tiempo exp. (meses)"></v-text-field>
                     </v-col>
                   </div>
                 </v-row>
@@ -107,7 +98,12 @@
                       label="Estado de estudio"
                     ></v-text-field>
                   </v-col>
-                  <v-col v-if="formItem.postulanteProf.horario_estudio!=undefined" cols="12" sm="12" md="6">
+                  <v-col
+                    v-if="formItem.postulanteProf.horario_estudio!=undefined"
+                    cols="12"
+                    sm="12"
+                    md="6"
+                  >
                     <v-text-field
                       v-model="formItem.postulanteProf.horario_estudio"
                       label="Horario de estudio"
@@ -194,15 +190,9 @@
     <template v-slot:item.agended="{ item }">
       <v-checkbox v-model="item.agended" @change="onCheckboxChange(item)"></v-checkbox>
     </template>
-    <!-- <template v-slot:item.check="{ item }">
-      <v-btn small color="primary" @click="editItem(item)">Experiencia</v-btn>
-      <v-checkbox v-model="checkbox" :label="`Checkbox 1: ${checkbox.toString()}`"></v-checkbox>
-      <v-icon small @click="deleteItem(item)">delete</v-icon>
-    </template>-->
-    <!--
-    <template v-slot:no-data>
-      <v-btn color="primary" @click="initialize">Reset</v-btn>
-    </template>-->
+    <template v-slot:item.espontaneo="{ item }">
+      <v-checkbox v-model="item.espontaneo" @change="onEspontaneoChange(item)"></v-checkbox>
+    </template>
   </v-data-table>
 </template>
 
@@ -249,7 +239,7 @@ export default {
       { text: "Experiencia", value: "action", sortable: false },
       { text: "Agendad@", value: "agended" },
       // { text: "Selector@", value: "selectore" },
-      // { text: "Espontáneo", value: "espontaneo" },
+      { text: "Espontáneo", value: "espontaneo" },
       // { text: "Disponibilidad", value: "disponibilidad" },
       // { text: "Resultado", value: "result" },
       // { text: "IGC", value: "igc" },
@@ -378,6 +368,14 @@ export default {
         .ref()
         .update(updates);
     },
+    onEspontaneoChange(item) {
+      var updates = {};
+      updates["/POSTULANTES/" + item.key + "/espontaneo/"] = item.espontaneo;
+      firebase
+        .database()
+        .ref()
+        .update(updates);
+    },
 
     deleteItem(item) {
       const index = this.postulanteTable.indexOf(item);
@@ -465,6 +463,12 @@ export default {
           agended: this.getAgendedPostulante(
             this.postulantesInfo[postulanteInfo]
           ),
+          // state: this.getStatePostulante(
+          //   this.postulantesInfo[postulanteInfo]
+          // ),
+          espontaneo: this.getEspontaneoPostulante(
+            this.postulantesInfo[postulanteInfo]
+          ),
           infoPersonal: this.postulantesInfo[postulanteInfo],
           experience: this.getExperiencePostulante(postulanteInfo),
           postulanteProf: this.getFormacionPostulante(postulanteInfo)
@@ -530,7 +534,28 @@ export default {
         agended = postulanteInfo.agended;
       }
       return agended;
+    },
+    getEspontaneoPostulante(postulanteInfo) {
+      let espontaneo;
+      if (postulanteInfo.espontaneo == undefined) {
+        espontaneo = false;
+      } else {
+        espontaneo = postulanteInfo.espontaneo;
+      }
+      return espontaneo;
     }
+    // getStatePostulante(postulanteInfo){
+    //   let state;
+    //   if(postulanteInfo.state==undefined){
+    //     state=false
+    //   }else{
+
+    //     if(postulanteInfo.state.agended.active==1){
+
+    //     }
+
+    //   }
+    // }
   }
 };
 </script>
