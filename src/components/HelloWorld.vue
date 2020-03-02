@@ -172,6 +172,44 @@
             </v-card-text>
           </v-card>
         </v-dialog>
+        <v-dialog v-model="cardDisponibilidad" max-width="500px">
+          <v-card>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn
+                color="blue darken-1"
+                text
+                @click="closeDisponibilidad()"
+              >Cerrar</v-btn>
+            </v-card-actions>
+            <v-card-title>
+              <span class="headline">Editar disponibilidad de {{disponibilidadItem.name}}</span>
+            </v-card-title>
+
+            <v-card-text>
+              <div class="col-12 content-hours">
+                <v-col style="flex: 0 1 auto;" cols="12">
+                  <h2>Inicio:</h2>
+                  <v-time-picker
+                    width="200"
+                    v-model="disponibilidad.start"
+                    :max="disponibilidad.end"
+                  ></v-time-picker>
+                </v-col>
+                <v-col style="flex: 0 1 auto;" cols="12">
+                  <h2>Fin:</h2>
+                  <v-time-picker
+                    width="200"
+                    v-model="disponibilidad.end"
+                    :min="disponibilidad.start"
+                  ></v-time-picker>
+                </v-col>
+              </div>
+
+              <v-btn small color="info" @click="postDisponibilidad(disponibilidadItem, disponibilidad.start, disponibilidad.end)">Guardar</v-btn>
+            </v-card-text>
+          </v-card>
+        </v-dialog>
       </v-toolbar>
     </template>
     <template v-slot:item.infoPersonal="{ item }">
@@ -192,6 +230,20 @@
     </template>
     <template v-slot:item.espontaneo="{ item }">
       <v-checkbox v-model="item.espontaneo" @change="onEspontaneoChange(item)"></v-checkbox>
+    </template>
+    <template v-slot:item.disponibilidad="{ item }">
+      <v-btn
+        v-if="item.disponibilidad.start==null && item.disponibilidad.end==null && item.stateDispo==false"
+        small
+        color="success"
+        @click="addDisponibilidad(item)"
+      >Agregar</v-btn>
+      <div class="edit-time" v-else>
+        <p class="margin-0">{{item.disponibilidad.start}} - {{item.disponibilidad.end}}</p>
+        <v-btn text icon color="blue lighten-2" @click="addDisponibilidad(item)">
+          <v-icon>mdi-pencil</v-icon>
+        </v-btn>
+      </div>
     </template>
   </v-data-table>
 </template>
@@ -216,6 +268,12 @@ export default {
     dialog: false,
     cardForm: false,
     cardInfo: false,
+    cardDisponibilidad: false,
+    disponibilidad: {
+      start:null,
+      end: null
+    },
+   
     headers: [
       {
         text: "Nº",
@@ -240,7 +298,7 @@ export default {
       { text: "Agendad@", value: "agended" },
       // { text: "Selector@", value: "selectore" },
       { text: "Espontáneo", value: "espontaneo" },
-      // { text: "Disponibilidad", value: "disponibilidad" },
+      { text: "Disponibilidad", value: "disponibilidad" },
       // { text: "Resultado", value: "result" },
       // { text: "IGC", value: "igc" },
       { text: "Registro", value: "register" }
@@ -257,9 +315,9 @@ export default {
       espontaneo: false,
       result: "",
       agended: false,
-      experience: []
+      experience: [],
       // selectore: "",
-      // disponitilidad: "",
+      disponibilidad: {}
       // igc: "",
     },
     formIndex: -1,
@@ -274,9 +332,9 @@ export default {
       espontaneo: false,
       result: "",
       agended: false,
-      experience: []
+      experience: [],
       // selectore: "",
-      // disponitilidad: "",
+      disponibilidad: {}
       // igc: "",
     },
     infoIndex: -1,
@@ -291,11 +349,29 @@ export default {
       espontaneo: false,
       result: "",
       agended: false,
-      experience: []
+      experience: [],
       // selectore: "",
-      // disponitilidad: "",
+      disponibilidad: {}
       // igc: "",
     },
+    disponibilidadIndex: -1,
+    disponibilidadItem: {
+      tipoDoc: "",
+      numDoc: "",
+      name: "",
+      key: "",
+      register: "",
+      infoPersonal: {},
+      formacion: {},
+      espontaneo: false,
+      result: "",
+      agended: false,
+      experience: [],
+      // selectore: "",
+      disponibilidad: {}
+      // igc: "",
+    },
+
     defaultItem: {
       tipoDoc: "",
       numDoc: "",
@@ -307,9 +383,9 @@ export default {
       espontaneo: false,
       result: "",
       agended: false,
-      experience: []
+      experience: [],
       // selectore: "",
-      // disponitilidad: "",
+      disponibilidad: {}
       // igc: "",
     }
   }),
@@ -330,6 +406,9 @@ export default {
     },
     cardInfo(val) {
       val || this.closeInfo();
+    },
+    cardDisponibilidad(val) {
+      val || this.closeDisponibilidad();
     }
   },
 
@@ -359,6 +438,11 @@ export default {
       this.infoIndex = this.postulanteTable.indexOf(item);
       this.infoItem = Object.assign({}, item);
       this.cardInfo = true;
+    },
+    addDisponibilidad(item) {
+      this.disponibilidadIndex = this.postulanteTable.indexOf(item);
+      this.disponibilidadItem = Object.assign({}, item);
+      this.cardDisponibilidad = true;
     },
     onCheckboxChange(item) {
       var updates = {};
@@ -402,6 +486,17 @@ export default {
       setTimeout(() => {
         this.infoItem = Object.assign({}, this.defaultItem);
         this.infoIndex = -1;
+      }, 300);
+    },
+    closeDisponibilidad() {
+      this.cardDisponibilidad = false;
+      this.disponibilidad ={
+        start:null,
+        end:null
+      }
+      setTimeout(() => {
+        this.disponibilidadItem = Object.assign({}, this.defaultItem);
+        this.disponibilidadIndex = -1;
       }, 300);
     },
 
@@ -469,6 +564,10 @@ export default {
           espontaneo: this.getEspontaneoPostulante(
             this.postulantesInfo[postulanteInfo]
           ),
+          disponibilidad: this.getDisponibilidadPostulante(
+            this.postulantesInfo[postulanteInfo]
+          ),
+          stateDispo: this.getStateDispo(this.postulantesInfo[postulanteInfo]),
           infoPersonal: this.postulantesInfo[postulanteInfo],
           experience: this.getExperiencePostulante(postulanteInfo),
           postulanteProf: this.getFormacionPostulante(postulanteInfo)
@@ -543,6 +642,45 @@ export default {
         espontaneo = postulanteInfo.espontaneo;
       }
       return espontaneo;
+    },
+    getDisponibilidadPostulante(postulanteInfo) {
+      let disponibilidad;
+      if (postulanteInfo.disponibilidad == undefined) {
+        disponibilidad = {
+          start: null,
+          end: null
+        };
+      } else {
+        disponibilidad = postulanteInfo.disponibilidad;
+      }
+      return disponibilidad;
+    },
+    getStateDispo(postulanteInfo) {
+      let state;
+      if (postulanteInfo.disponibilidad == undefined) {
+        state=false;
+      } else {
+        state=true;
+      }
+      return state;
+    },
+    postDisponibilidad(item, start, end) {
+      var updates = {};
+      item.disponibilidad.start = start;
+      item.disponibilidad.end = end;
+      updates["/POSTULANTES/" + item.key + "/disponibilidad/"] =
+        item.disponibilidad;
+      firebase
+        .database()
+        .ref()
+        .update(updates);
+      item.stateDispo = true;
+      this.disponibilidad = {
+        start:null,
+        end:null
+      }
+      this.cardDisponibilidad = false;
+     
     }
     // getStatePostulante(postulanteInfo){
     //   let state;
@@ -561,4 +699,28 @@ export default {
 </script>
 
 <style>
+.content-hours {
+  display: flex;
+  align-content: center;
+  justify-content: center;
+  flex-direction: row;
+  padding: 0 !important;
+}
+.edit-time {
+  display: flex;
+  flex-direction: row;
+  justify-content: stretch;
+  align-content: center;
+  align-items: center;
+}
+
+.margin-0 {
+  margin: 0 !important;
+}
+
+@media (max-width: 768px) {
+  .content-hours {
+    flex-direction: column;
+  }
+}
 </style>
