@@ -13,6 +13,9 @@
         <v-toolbar-title>Postulantes Vivekonecta</v-toolbar-title>
         <v-btn class="ml-3" small color="success" @click="update()">Actualizar</v-btn>
         <v-divider class="mx-4" inset vertical></v-divider>
+        <download-csv :data="downloadExcel(postulanteTable)" name="ReporteTotal.csv">
+          <v-btn color="blue darken-1" class="padding-0" text>Descargar excel</v-btn>
+        </download-csv>
         <v-spacer></v-spacer>
         <v-dialog v-model="dialog" max-width="500px">
           <!-- <template v-slot:activator="{ on }">
@@ -286,6 +289,9 @@
 import firebase from "firebase";
 import login from "./login.vue";
 import moment from "moment";
+import Vue from "vue";
+import JsonCSV from "vue-json-csv";
+Vue.component("downloadCsv", JsonCSV);
 
 export default {
   name: "HelloWorld",
@@ -670,7 +676,7 @@ export default {
         i++;
       }
       // console.log(this.postulantes);
-      // console.log(this.postulanteTable);
+      //console.log(this.postulanteTable);
     },
     getLoginState: function(loginState) {
       this.loginState = loginState;
@@ -702,7 +708,7 @@ export default {
       this.writeUserProf();
       this.postulanteTable = [];
       this.getPostulantData();
-      console.log(this.postulanteTable);
+     // console.log(this.postulanteTable);
     },
     getNamePostulante(postulanteInfo) {
       let name;
@@ -1000,7 +1006,7 @@ export default {
       this.cardState = false;
     },
     offOldState(postulanteInfo, oldState) {
-     // console.log(oldState);
+      // console.log(oldState);
       var updates = {};
       if (oldState == "Agendad@") {
         updates[
@@ -1061,6 +1067,69 @@ export default {
           }
         }
       }
+    },
+    downloadExcel(postulanteTable) {
+      let dataTotal = [];
+
+      for (let i = 0; i < postulanteTable.length; i++) {
+        // dataTotal.push({
+        //   Nº: postulanteTable[i].number,
+        //   "Tipo de documento": postulanteTable[i].tipoDoc,
+        //   "Nº de documento": postulanteTable[i].numDoc,
+        //   "Nombre/Nombre social completo": postulanteTable[i].name,
+        //   "Fecha y hora de registro": postulanteTable[i].register
+        // });
+
+        for (let u = 0; u < postulanteTable[i].experience.length; u++) {
+          if(postulanteTable[i].postulanteProf!=undefined){
+            dataTotal.push({
+              "Nº": postulanteTable[i].number,
+              "Tipo de documento": postulanteTable[i].tipoDoc,
+              "Nº de documento": postulanteTable[i].numDoc,
+              "Nombre/Nombre social completo": postulanteTable[i].name,
+              "Estado de postulacion": postulanteTable[i].state,
+              "Estado civil": postulanteTable[i].infoPersonal.estado_civil,
+              "Fecha de nacimiento": postulanteTable[i].infoPersonal.fecha_nac,
+              "Género": postulanteTable[i].infoPersonal.genero,
+              "Nº de hijos": postulanteTable[i].infoPersonal.n_hijos,
+              "Correo electrónico": postulanteTable[i].infoPersonal.correo,
+              "Teléfono": postulanteTable[i].infoPersonal.telefono,
+              "Dirección": postulanteTable[i].infoPersonal.text_dir,
+              "Fecha y hora de registro": postulanteTable[i].register,
+              "Grado de formacion": postulanteTable[i].postulanteProf.grado_formacion,
+              "Estado estudio": postulanteTable[i].postulanteProf.estado_estudios,
+              "Institucion": postulanteTable[i].postulanteProf.institucion,
+              "Rubro carrera": postulanteTable[i].postulanteProf.rubro_carrera,
+              "Horario estudio": postulanteTable[i].postulanteProf.horario_estudio,
+              "Empresa - experiencia no call": postulanteTable[i].experience[u].eo_empresa,
+              "Rubro empresa - experiencia no call": postulanteTable[i].experience[u].eo_rubro_empresa,
+              "Puesto experiencia - no call": postulanteTable[i].experience[u].eo_puesto,
+              "Tiempo (meses) - experiencia no call": postulanteTable[i].experience[u].eo_tiempo_exp,
+              "Empresa - experiencia call": postulanteTable[i].experience[u].ec_empresa,
+              "Cliente - experiencia call": postulanteTable[i].experience[u].ec_cliente,
+              "Rubro cliente - experiencia call": postulanteTable[i].experience[u].ec_rubro_cliente,
+              "Segmento - experiencia call": postulanteTable[i].experience[u].ec_segmento,
+              "Tiempo (meses) - experiencia call": postulanteTable[i].experience[u].ec_tiempo_exp,
+              "Disponibilidad horaria": postulanteTable[i].disponibilidad.start+"-"+postulanteTable[i].disponibilidad.end,
+              "Espontáneo": postulanteTable[i].espontaneo,
+          });
+
+          }
+
+        }
+      }
+
+      // for (let i = 0; i < postulanteTable.experience.length; i++) {
+      //   dataTotal.push({
+      //     Nº: postulanteTable[i].number,
+      //     "Tipo de documento": postulanteTable[i].tipoDoc,
+      //     "Nº de documento": postulanteTable[i].numDoc,
+      //     "Nombre/Nombre social completo": postulanteTable[i].name,
+      //     "Fecha y hora de registro": postulanteTable[i].register
+      //   });
+      // }
+
+      return dataTotal;
     }
   }
 };
@@ -1084,6 +1153,9 @@ export default {
 
 .margin-0 {
   margin: 0 !important;
+}
+.padding-0{
+  padding: 0 !important;
 }
 
 @media (max-width: 768px) {
