@@ -176,11 +176,7 @@
           <v-card>
             <v-card-actions>
               <v-spacer></v-spacer>
-              <v-btn
-                color="blue darken-1"
-                text
-                @click="closeDisponibilidad()"
-              >Cerrar</v-btn>
+              <v-btn color="blue darken-1" text @click="closeDisponibilidad()">Cerrar</v-btn>
             </v-card-actions>
             <v-card-title>
               <span class="headline">Editar disponibilidad de {{disponibilidadItem.name}}</span>
@@ -206,7 +202,40 @@
                 </v-col>
               </div>
 
-              <v-btn small color="info" @click="postDisponibilidad(disponibilidadItem, disponibilidad.start, disponibilidad.end)">Guardar</v-btn>
+              <v-btn
+                small
+                color="info"
+                @click="postDisponibilidad(disponibilidadItem, disponibilidad.start, disponibilidad.end)"
+              >Guardar</v-btn>
+            </v-card-text>
+          </v-card>
+        </v-dialog>
+        <v-dialog v-model="cardState" max-width="500px">
+          <v-card>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue darken-1" text @click="closeState()">Cerrar</v-btn>
+            </v-card-actions>
+            <v-card-title>
+              <span class="headline">Editar estado de postulación de:</span>
+              <hr />
+              <span>{{stateItem.name}}</span>
+            </v-card-title>
+
+            <v-card-text>
+              <div class="col-12 content-hours">
+                <v-select
+                  v-model="select"
+                  :items="items"
+                  item-text="track"
+                  item-value="track"
+                  label="Seleccionar"
+                  persistent-hint
+                  return-object
+                  single-line
+                ></v-select>
+                <v-btn small color="info" @click="postState(stateItem, select)">Guardar</v-btn>
+              </div>
             </v-card-text>
           </v-card>
         </v-dialog>
@@ -225,8 +254,13 @@
       <v-btn small color="info" @click="editItem(item)">Experiencia</v-btn>
       <!-- <v-icon small @click="deleteItem(item)">delete</v-icon> -->
     </template>
-    <template v-slot:item.agended="{ item }">
-      <v-checkbox v-model="item.agended" @change="onCheckboxChange(item)"></v-checkbox>
+    <template v-slot:item.state="{ item }">
+      <div class="edit-time">
+        <v-btn text icon color="blue lighten-2" @click="editStateItem(item)">
+          <v-icon>mdi-pencil</v-icon>
+        </v-btn>
+        <p class="margin-0">{{item.state}}</p>
+      </div>
     </template>
     <template v-slot:item.espontaneo="{ item }">
       <v-checkbox v-model="item.espontaneo" @change="onEspontaneoChange(item)"></v-checkbox>
@@ -251,6 +285,7 @@
 <script>
 import firebase from "firebase";
 import login from "./login.vue";
+import moment from "moment";
 
 export default {
   name: "HelloWorld",
@@ -259,6 +294,12 @@ export default {
   },
 
   data: () => ({
+    select: { track: "No contactad@" },
+    items: [
+      { track: "Agendad@" },
+      { track: "En sala de espera" },
+      { track: "Selección express" }
+    ],
     postulantes: [],
     postulanteTable: [],
     postulantesInfo: {},
@@ -269,11 +310,12 @@ export default {
     cardForm: false,
     cardInfo: false,
     cardDisponibilidad: false,
+    cardState: false,
     disponibilidad: {
-      start:null,
+      start: null,
       end: null
     },
-   
+
     headers: [
       {
         text: "Nº",
@@ -295,7 +337,7 @@ export default {
       { text: "Datos postulante", value: "infoPersonal", sortable: false },
       { text: "Formacion", value: "formacion", sortable: false },
       { text: "Experiencia", value: "action", sortable: false },
-      { text: "Agendad@", value: "agended" },
+      { text: "Estado", value: "state" },
       // { text: "Selector@", value: "selectore" },
       { text: "Espontáneo", value: "espontaneo" },
       { text: "Disponibilidad", value: "disponibilidad" },
@@ -314,7 +356,8 @@ export default {
       formacion: {},
       espontaneo: false,
       result: "",
-      agended: false,
+      state: "",
+
       experience: [],
       // selectore: "",
       disponibilidad: {}
@@ -331,7 +374,8 @@ export default {
       formacion: {},
       espontaneo: false,
       result: "",
-      agended: false,
+      state: "",
+      // agended: false,
       experience: [],
       // selectore: "",
       disponibilidad: {}
@@ -348,7 +392,8 @@ export default {
       formacion: {},
       espontaneo: false,
       result: "",
-      agended: false,
+      state: "",
+      // agended: false,
       experience: [],
       // selectore: "",
       disponibilidad: {}
@@ -365,7 +410,26 @@ export default {
       formacion: {},
       espontaneo: false,
       result: "",
-      agended: false,
+      state: "",
+      // agended: false,
+      experience: [],
+      // selectore: "",
+      disponibilidad: {}
+      // igc: "",
+    },
+    stateIndex: -1,
+    stateItem: {
+      tipoDoc: "",
+      numDoc: "",
+      name: "",
+      key: "",
+      register: "",
+      infoPersonal: {},
+      formacion: {},
+      espontaneo: false,
+      result: "",
+      state: "",
+      // agended: false,
       experience: [],
       // selectore: "",
       disponibilidad: {}
@@ -382,7 +446,8 @@ export default {
       formacion: {},
       espontaneo: false,
       result: "",
-      agended: false,
+      state: "",
+      // agended: false,
       experience: [],
       // selectore: "",
       disponibilidad: {}
@@ -409,6 +474,9 @@ export default {
     },
     cardDisponibilidad(val) {
       val || this.closeDisponibilidad();
+    },
+    cardState(val) {
+      val || this.closeState();
     }
   },
 
@@ -444,6 +512,11 @@ export default {
       this.disponibilidadItem = Object.assign({}, item);
       this.cardDisponibilidad = true;
     },
+    editStateItem(item) {
+      this.stateIndex = this.postulanteTable.indexOf(item);
+      this.stateItem = Object.assign({}, item);
+      this.cardState = true;
+    },
     onCheckboxChange(item) {
       var updates = {};
       updates["/POSTULANTES/" + item.key + "/agended/"] = item.agended;
@@ -453,6 +526,14 @@ export default {
         .update(updates);
     },
     onEspontaneoChange(item) {
+      // let date = new Date();
+      // let dateString = moment().format("L");
+      // let hour = date.getHours() + ":" + date.getMinutes() + "";
+
+      // let espontaneo = {
+      //   date: dateString,
+      //   hour: hour
+      // };
       var updates = {};
       updates["/POSTULANTES/" + item.key + "/espontaneo/"] = item.espontaneo;
       firebase
@@ -490,16 +571,22 @@ export default {
     },
     closeDisponibilidad() {
       this.cardDisponibilidad = false;
-      this.disponibilidad ={
-        start:null,
-        end:null
-      }
+      this.disponibilidad = {
+        start: null,
+        end: null
+      };
       setTimeout(() => {
         this.disponibilidadItem = Object.assign({}, this.defaultItem);
         this.disponibilidadIndex = -1;
       }, 300);
     },
-
+    closeState() {
+      this.cardState = false;
+      setTimeout(() => {
+        this.stateItem = Object.assign({}, this.defaultItem);
+        this.stateIndex = -1;
+      }, 300);
+    },
     save() {
       if (this.editedIndex > -1) {
         Object.assign(this.postulanteTable[this.editedIndex], this.editedItem);
@@ -555,12 +642,10 @@ export default {
             this.postulantesInfo[postulanteInfo].RegistradoDate.date +
             " " +
             this.postulantesInfo[postulanteInfo].RegistradoDate.hour,
-          agended: this.getAgendedPostulante(
-            this.postulantesInfo[postulanteInfo]
-          ),
-          // state: this.getStatePostulante(
+          // agended: this.getAgendedPostulante(
           //   this.postulantesInfo[postulanteInfo]
           // ),
+          state: this.getStatePostulante(this.postulantesInfo[postulanteInfo]),
           espontaneo: this.getEspontaneoPostulante(
             this.postulantesInfo[postulanteInfo]
           ),
@@ -658,9 +743,9 @@ export default {
     getStateDispo(postulanteInfo) {
       let state;
       if (postulanteInfo.disponibilidad == undefined) {
-        state=false;
+        state = false;
       } else {
-        state=true;
+        state = true;
       }
       return state;
     },
@@ -676,24 +761,169 @@ export default {
         .update(updates);
       item.stateDispo = true;
       this.disponibilidad = {
-        start:null,
-        end:null
-      }
+        start: null,
+        end: null
+      };
       this.cardDisponibilidad = false;
-     
+    },
+    getStatePostulante(postulanteInfo) {
+      let state;
+      if (postulanteInfo.state == undefined) {
+        if (postulanteInfo.agended) {
+          state = "Agendad@";
+        } else {
+          state = "No contactad@";
+        }
+      } else {
+        if (postulanteInfo.agended == undefined) {
+          //condicionales para quecar solo los .state
+          if (postulanteInfo.state.agended != undefined) {
+            if (postulanteInfo.state.agended.active) {
+              state = "Agendad@";
+            } else {
+              if (postulanteInfo.state.waiting != undefined) {
+                if (postulanteInfo.state.waiting.active) {
+                  state = "En sala de espera";
+                } else {
+                  if (postulanteInfo.state.express != undefined) {
+                    if (postulanteInfo.state.express.active) {
+                      state = "Selección express";
+                    } else {
+                      state = "No contactad@";
+                    }
+                  }
+                }
+              }
+            }
+          }
+        } else {
+          if (postulanteInfo.agended) {
+            state = "Agendad@";
+          } else {
+            if (postulanteInfo.state.agended != undefined) {
+              if (postulanteInfo.state.agended.active) {
+                state = "Agendad@";
+              } else {
+                if (postulanteInfo.state.waiting != undefined) {
+                  if (postulanteInfo.state.waiting.active) {
+                    state = "En sala de espera";
+                  } else {
+                    if (postulanteInfo.state.express != undefined) {
+                      if (postulanteInfo.state.express.active) {
+                        state = "Selección express";
+                      } else {
+                        state = "No contactad@";
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+
+      return state;
+    },
+    postState(postulanteInfo, state) {
+      var updates = {};
+      let oldState = postulanteInfo.state;
+      let date = new Date();
+      let dateString = moment().format("L");
+      let hour = date.getHours() + ":" + date.getMinutes() + "";
+
+      let editState = {
+        active: true,
+        date: dateString,
+        hour: hour
+      };
+      this.offOldState(postulanteInfo, oldState);
+
+      if (state.track == "Agendad@") {
+        updates[
+          "/POSTULANTES/" + postulanteInfo.key + "/state/agended/"
+        ] = editState;
+        firebase
+          .database()
+          .ref()
+          .update(updates);
+
+        if (postulanteInfo.agended != undefined) {
+          var update = {};
+          update["/POSTULANTES/" + postulanteInfo.key + "/agended/"] = true;
+          firebase
+            .database()
+            .ref()
+            .update(update);
+        }
+        this.update();
+      } else {
+        if (state.track == "En sala de espera") {
+          updates[
+            "/POSTULANTES/" + postulanteInfo.key + "/state/waiting/"
+          ] = editState;
+          firebase
+            .database()
+            .ref()
+            .update(updates);
+
+          this.update();
+        } else {
+          if (state.track == "Selección express") {
+            updates[
+              "/POSTULANTES/" + postulanteInfo.key + "/state/express/"
+            ] = editState;
+            firebase
+              .database()
+              .ref()
+              .update(updates);
+          }
+          this.update();
+        }
+      }
+
+      this.cardState = false;
+    },
+    offOldState(postulanteInfo, oldState) {
+      var updates = {};
+      if (oldState == "Agendad@") {
+        updates[
+          "/POSTULANTES/" + postulanteInfo.key + "/state/agended/active/"
+        ] = false;
+        firebase
+          .database()
+          .ref()
+          .update(updates);
+        if (postulanteInfo.agended) {
+          var update = {};
+          update["/POSTULANTES/" + postulanteInfo.key + "/agended/"] = false;
+          firebase
+            .database()
+            .ref()
+            .update(update);
+        }
+      } else {
+        if (oldState == "En sala de espera") {
+          updates[
+            "/POSTULANTES/" + postulanteInfo.key + "/state/waiting/active/"
+          ] = false;
+          firebase
+            .database()
+            .ref()
+            .update(updates);
+        } else {
+          if (oldState == "Selección express") {
+            updates[
+              "/POSTULANTES/" + postulanteInfo.key + "/state/express/active/"
+            ] = false;
+            firebase
+              .database()
+              .ref()
+              .update(updates);
+          }
+        }
+      }
     }
-    // getStatePostulante(postulanteInfo){
-    //   let state;
-    //   if(postulanteInfo.state==undefined){
-    //     state=false
-    //   }else{
-
-    //     if(postulanteInfo.state.agended.active==1){
-
-    //     }
-
-    //   }
-    // }
   }
 };
 </script>
