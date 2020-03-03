@@ -298,6 +298,8 @@ export default {
     items: [
       { track: "Agendad@" },
       { track: "En sala de espera" },
+      { track: "Evaluad@ - Aprobad@" },
+      { track: "Evaluad@ - Rechazad@" },
       { track: "Selección express" }
     ],
     postulantes: [],
@@ -700,6 +702,7 @@ export default {
       this.writeUserProf();
       this.postulanteTable = [];
       this.getPostulantData();
+      console.log(this.postulanteTable);
     },
     getNamePostulante(postulanteInfo) {
       let name;
@@ -776,53 +779,142 @@ export default {
         }
       } else {
         if (postulanteInfo.agended == undefined) {
-          //condicionales para quecar solo los .state
           if (postulanteInfo.state.agended != undefined) {
             if (postulanteInfo.state.agended.active) {
               state = "Agendad@";
-            } else {
-              if (postulanteInfo.state.waiting != undefined) {
-                if (postulanteInfo.state.waiting.active) {
-                  state = "En sala de espera";
-                } else {
-                  if (postulanteInfo.state.express != undefined) {
-                    if (postulanteInfo.state.express.active) {
-                      state = "Selección express";
-                    } else {
-                      state = "No contactad@";
-                    }
-                  }
-                }
-              }
             }
           }
+          if (postulanteInfo.state.waiting != undefined) {
+            if (postulanteInfo.state.waiting.active) {
+              state = "En sala de espera";
+            }
+          }
+
+          if (postulanteInfo.state.express != undefined) {
+            if (postulanteInfo.state.express.active) {
+              state = "Selección express";
+            }
+          }
+
+          if (postulanteInfo.state.approved != undefined) {
+            if (postulanteInfo.state.approved.active) {
+              state = "Evaluad@ - Aprobad@";
+            }
+          }
+
+          if (postulanteInfo.state.disapproved != undefined) {
+            if (postulanteInfo.state.disapproved.active) {
+              state = "Evaluad@ - Rechazad@";
+            }
+          }
+          //condicionales para quecar solo los .state
+          // if (postulanteInfo.state.agended != undefined) {
+          //   if (postulanteInfo.state.agended.active) {
+          //     state = "Agendad@";
+          //   } else {
+          //     state="aqui estoy"
+          //     if (postulanteInfo.state.waiting != undefined) {
+          //       if (postulanteInfo.state.waiting.active) {
+          //         state = "En sala de espera";
+          //       } else {
+          //         if (postulanteInfo.state.express != undefined) {
+          //           if (postulanteInfo.state.express.active) {
+          //             state = "Selección express";
+          //           } else {
+          //             state = "No contactad@";
+          //             if (postulanteInfo.state.approved != undefined) {
+          //               if (postulanteInfo.state.approved.active) {
+          //                 state = "Evaluad@ - Aprobad@";
+          //               } else {
+          //                 //state = "No contactad@";
+          //                 if (postulanteInfo.state.disapproved != undefined) {
+          //                   if (postulanteInfo.state.disapproved.active) {
+          //                     state = "Evaluad@ - Rechazad@";
+          //                   } else {
+          //                     state = "No contactad@";
+          //                   }
+          //                 }
+          //               }
+          //             }
+          //           }
+          //         }
+          //       }
+          //     }
+          //   }
+          // }
         } else {
           if (postulanteInfo.agended) {
             state = "Agendad@";
-          } else {
-            if (postulanteInfo.state.agended != undefined) {
-              if (postulanteInfo.state.agended.active) {
-                state = "Agendad@";
-              } else {
-                if (postulanteInfo.state.waiting != undefined) {
-                  if (postulanteInfo.state.waiting.active) {
-                    state = "En sala de espera";
-                  } else {
-                    if (postulanteInfo.state.express != undefined) {
-                      if (postulanteInfo.state.express.active) {
-                        state = "Selección express";
-                      } else {
-                        state = "No contactad@";
-                      }
-                    }
-                  }
-                }
-              }
+          }
+
+          if (postulanteInfo.state.agended != undefined) {
+            if (postulanteInfo.state.agended.active) {
+              state = "Agendad@";
             }
           }
+          if (postulanteInfo.state.waiting != undefined) {
+            if (postulanteInfo.state.waiting.active) {
+              state = "En sala de espera";
+            }
+          }
+
+          if (postulanteInfo.state.express != undefined) {
+            if (postulanteInfo.state.express.active) {
+              state = "Selección express";
+            }
+          }
+
+          if (postulanteInfo.state.approved != undefined) {
+            if (postulanteInfo.state.approved.active) {
+              state = "Evaluad@ - Aprobad@";
+            }
+          }
+
+          if (postulanteInfo.state.disapproved != undefined) {
+            if (postulanteInfo.state.disapproved.active) {
+              state = "Evaluad@ - Rechazad@";
+            }
+          }
+
+          // else {
+          //   if (postulanteInfo.state.agended != undefined) {
+          //     if (postulanteInfo.state.agended.active) {
+          //       state = "Agendad@";
+          //     } else {
+          //       if (postulanteInfo.state.waiting != undefined) {
+          //         if (postulanteInfo.state.waiting.active) {
+          //           state = "En sala de espera";
+          //         } else {
+          //           if (postulanteInfo.state.express != undefined) {
+          //             if (postulanteInfo.state.express.active) {
+          //               state = "Selección express";
+          //             } else {
+          //               state = "No contactad@";
+          //               if (postulanteInfo.state.approved != undefined) {
+          //                 if (postulanteInfo.state.approved.active) {
+          //                   state = "Evaluad@ - Aprobad@";
+          //                 } else {
+          //                   if (postulanteInfo.state.disapproved != undefined) {
+          //                     if (postulanteInfo.state.disapproved.active) {
+          //                       state = "Evaluad@ - Rechazad@";
+          //                     } else {
+          //                       state = "No contactad@";
+          //                     }
+          //                   }
+          //                 }
+          //               }
+          //             }
+          //           }
+          //         }
+          //       }
+          //     }
+          //   }
+          // }
         }
       }
-
+      if (state == undefined) {
+        state = "No entró a ningún if";
+      }
       return state;
     },
     postState(postulanteInfo, state) {
@@ -837,6 +929,7 @@ export default {
         date: dateString,
         hour: hour
       };
+
       this.offOldState(postulanteInfo, oldState);
 
       if (state.track == "Agendad@") {
@@ -877,14 +970,37 @@ export default {
               .database()
               .ref()
               .update(updates);
+            this.update();
+          } else {
+            if (state.track == "Evaluad@ - Aprobad@") {
+              updates[
+                "/POSTULANTES/" + postulanteInfo.key + "/state/approved/"
+              ] = editState;
+              firebase
+                .database()
+                .ref()
+                .update(updates);
+              this.update();
+            } else {
+              if (state.track == "Evaluad@ - Rechazad@") {
+                updates[
+                  "/POSTULANTES/" + postulanteInfo.key + "/state/disapproved/"
+                ] = editState;
+                firebase
+                  .database()
+                  .ref()
+                  .update(updates);
+                this.update();
+              }
+            }
           }
-          this.update();
         }
       }
 
       this.cardState = false;
     },
     offOldState(postulanteInfo, oldState) {
+     // console.log(oldState);
       var updates = {};
       if (oldState == "Agendad@") {
         updates[
@@ -920,6 +1036,28 @@ export default {
               .database()
               .ref()
               .update(updates);
+          } else {
+            if (oldState == "Evaluad@ - Aprobad@") {
+              updates[
+                "/POSTULANTES/" + postulanteInfo.key + "/state/approved/active/"
+              ] = false;
+              firebase
+                .database()
+                .ref()
+                .update(updates);
+            } else {
+              if (oldState == "Evaluad@ - Rechazad@") {
+                updates[
+                  "/POSTULANTES/" +
+                    postulanteInfo.key +
+                    "/state/disapproved/active/"
+                ] = false;
+                firebase
+                  .database()
+                  .ref()
+                  .update(updates);
+              }
+            }
           }
         }
       }
