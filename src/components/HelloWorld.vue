@@ -4,6 +4,7 @@
   <v-data-table
     v-else
     :headers="headers"
+    :search="search"
     :items="postulanteTable"
     sort-by="number"
     class="elevation-1"
@@ -11,12 +12,26 @@
     <template v-slot:top>
       <v-toolbar flat color="white">
         <v-toolbar-title>Postulantes Vivekonecta</v-toolbar-title>
-        <v-btn class="ml-3" small color="success" @click="update()">Actualizar</v-btn>
-        <v-divider class="mx-4" inset vertical></v-divider>
-        <download-csv :data="downloadExcel(postulanteTable)" name="ReporteTotal.csv">
-          <v-btn color="blue darken-1" class="padding-0" text>Descargar excel</v-btn>
-        </download-csv>
-        <v-spacer></v-spacer>
+        <div class="flex-row-mobile">
+          <div class="flex-row padding-mobile">
+            <v-btn class="ml-3" small color="success" @click="update()">Actualizar</v-btn>
+            <v-divider class="mx-4" inset vertical></v-divider>
+            <download-csv :data="downloadExcel(postulanteTable)" name="ReporteTotal.csv">
+              <v-btn color="blue darken-1" class="padding-0" text>Descargar excel</v-btn>
+            </download-csv>
+          </div>
+
+          <v-text-field
+            class="padding-mobile margin-mobile"
+            v-model="search"
+            append-icon="mdi-magnify"
+            label="Buscar"
+            single-line
+            hide-details
+          ></v-text-field>
+        </div>
+
+        <!-- <v-spacer></v-spacer> -->
         <v-dialog v-model="dialog" max-width="500px">
           <!-- <template v-slot:activator="{ on }">
             <v-btn color="primary" dark class="mb-2" v-on="on">New Item</v-btn>
@@ -244,6 +259,7 @@
         </v-dialog>
       </v-toolbar>
     </template>
+    <br>
     <template v-slot:item.infoPersonal="{ item }">
       <v-btn small color="info" @click="infoCard(item)">Info postulante</v-btn>
       <!-- <v-icon small @click="deleteItem(item)">delete</v-icon> -->
@@ -300,6 +316,7 @@ export default {
   },
 
   data: () => ({
+    search: '',
     select: { track: "No contactad@" },
     items: [
       { track: "Agendad@" },
@@ -708,7 +725,7 @@ export default {
       this.writeUserProf();
       this.postulanteTable = [];
       this.getPostulantData();
-     // console.log(this.postulanteTable);
+      // console.log(this.postulanteTable);
     },
     getNamePostulante(postulanteInfo) {
       let name;
@@ -813,41 +830,6 @@ export default {
               state = "Evaluad@ - Rechazad@";
             }
           }
-          //condicionales para quecar solo los .state
-          // if (postulanteInfo.state.agended != undefined) {
-          //   if (postulanteInfo.state.agended.active) {
-          //     state = "Agendad@";
-          //   } else {
-          //     state="aqui estoy"
-          //     if (postulanteInfo.state.waiting != undefined) {
-          //       if (postulanteInfo.state.waiting.active) {
-          //         state = "En sala de espera";
-          //       } else {
-          //         if (postulanteInfo.state.express != undefined) {
-          //           if (postulanteInfo.state.express.active) {
-          //             state = "Selección express";
-          //           } else {
-          //             state = "No contactad@";
-          //             if (postulanteInfo.state.approved != undefined) {
-          //               if (postulanteInfo.state.approved.active) {
-          //                 state = "Evaluad@ - Aprobad@";
-          //               } else {
-          //                 //state = "No contactad@";
-          //                 if (postulanteInfo.state.disapproved != undefined) {
-          //                   if (postulanteInfo.state.disapproved.active) {
-          //                     state = "Evaluad@ - Rechazad@";
-          //                   } else {
-          //                     state = "No contactad@";
-          //                   }
-          //                 }
-          //               }
-          //             }
-          //           }
-          //         }
-          //       }
-          //     }
-          //   }
-          // }
         } else {
           if (postulanteInfo.agended) {
             state = "Agendad@";
@@ -881,41 +863,6 @@ export default {
               state = "Evaluad@ - Rechazad@";
             }
           }
-
-          // else {
-          //   if (postulanteInfo.state.agended != undefined) {
-          //     if (postulanteInfo.state.agended.active) {
-          //       state = "Agendad@";
-          //     } else {
-          //       if (postulanteInfo.state.waiting != undefined) {
-          //         if (postulanteInfo.state.waiting.active) {
-          //           state = "En sala de espera";
-          //         } else {
-          //           if (postulanteInfo.state.express != undefined) {
-          //             if (postulanteInfo.state.express.active) {
-          //               state = "Selección express";
-          //             } else {
-          //               state = "No contactad@";
-          //               if (postulanteInfo.state.approved != undefined) {
-          //                 if (postulanteInfo.state.approved.active) {
-          //                   state = "Evaluad@ - Aprobad@";
-          //                 } else {
-          //                   if (postulanteInfo.state.disapproved != undefined) {
-          //                     if (postulanteInfo.state.disapproved.active) {
-          //                       state = "Evaluad@ - Rechazad@";
-          //                     } else {
-          //                       state = "No contactad@";
-          //                     }
-          //                   }
-          //                 }
-          //               }
-          //             }
-          //           }
-          //         }
-          //       }
-          //     }
-          //   }
-          // }
         }
       }
       if (state == undefined) {
@@ -1081,41 +1028,54 @@ export default {
         // });
 
         for (let u = 0; u < postulanteTable[i].experience.length; u++) {
-          if(postulanteTable[i].postulanteProf!=undefined){
+          if (postulanteTable[i].postulanteProf != undefined) {
             dataTotal.push({
-              "Nº": postulanteTable[i].number,
+              Nº: postulanteTable[i].number,
               "Tipo de documento": postulanteTable[i].tipoDoc,
               "Nº de documento": postulanteTable[i].numDoc,
               "Nombre/Nombre social completo": postulanteTable[i].name,
               "Estado de postulacion": postulanteTable[i].state,
               "Estado civil": postulanteTable[i].infoPersonal.estado_civil,
               "Fecha de nacimiento": postulanteTable[i].infoPersonal.fecha_nac,
-              "Género": postulanteTable[i].infoPersonal.genero,
+              Género: postulanteTable[i].infoPersonal.genero,
               "Nº de hijos": postulanteTable[i].infoPersonal.n_hijos,
               "Correo electrónico": postulanteTable[i].infoPersonal.correo,
-              "Teléfono": postulanteTable[i].infoPersonal.telefono,
-              "Dirección": postulanteTable[i].infoPersonal.text_dir,
+              Teléfono: postulanteTable[i].infoPersonal.telefono,
+              Dirección: postulanteTable[i].infoPersonal.text_dir,
               "Fecha y hora de registro": postulanteTable[i].register,
-              "Grado de formacion": postulanteTable[i].postulanteProf.grado_formacion,
-              "Estado estudio": postulanteTable[i].postulanteProf.estado_estudios,
-              "Institucion": postulanteTable[i].postulanteProf.institucion,
+              "Grado de formacion":
+                postulanteTable[i].postulanteProf.grado_formacion,
+              "Estado estudio":
+                postulanteTable[i].postulanteProf.estado_estudios,
+              Institucion: postulanteTable[i].postulanteProf.institucion,
               "Rubro carrera": postulanteTable[i].postulanteProf.rubro_carrera,
-              "Horario estudio": postulanteTable[i].postulanteProf.horario_estudio,
-              "Empresa - experiencia no call": postulanteTable[i].experience[u].eo_empresa,
-              "Rubro empresa - experiencia no call": postulanteTable[i].experience[u].eo_rubro_empresa,
-              "Puesto experiencia - no call": postulanteTable[i].experience[u].eo_puesto,
-              "Tiempo (meses) - experiencia no call": postulanteTable[i].experience[u].eo_tiempo_exp,
-              "Empresa - experiencia call": postulanteTable[i].experience[u].ec_empresa,
-              "Cliente - experiencia call": postulanteTable[i].experience[u].ec_cliente,
-              "Rubro cliente - experiencia call": postulanteTable[i].experience[u].ec_rubro_cliente,
-              "Segmento - experiencia call": postulanteTable[i].experience[u].ec_segmento,
-              "Tiempo (meses) - experiencia call": postulanteTable[i].experience[u].ec_tiempo_exp,
-              "Disponibilidad horaria": postulanteTable[i].disponibilidad.start+"-"+postulanteTable[i].disponibilidad.end,
-              "Espontáneo": postulanteTable[i].espontaneo,
-          });
-
+              "Horario estudio":
+                postulanteTable[i].postulanteProf.horario_estudio,
+              "Empresa - experiencia no call":
+                postulanteTable[i].experience[u].eo_empresa,
+              "Rubro empresa - experiencia no call":
+                postulanteTable[i].experience[u].eo_rubro_empresa,
+              "Puesto experiencia - no call":
+                postulanteTable[i].experience[u].eo_puesto,
+              "Tiempo (meses) - experiencia no call":
+                postulanteTable[i].experience[u].eo_tiempo_exp,
+              "Empresa - experiencia call":
+                postulanteTable[i].experience[u].ec_empresa,
+              "Cliente - experiencia call":
+                postulanteTable[i].experience[u].ec_cliente,
+              "Rubro cliente - experiencia call":
+                postulanteTable[i].experience[u].ec_rubro_cliente,
+              "Segmento - experiencia call":
+                postulanteTable[i].experience[u].ec_segmento,
+              "Tiempo (meses) - experiencia call":
+                postulanteTable[i].experience[u].ec_tiempo_exp,
+              "Disponibilidad horaria":
+                postulanteTable[i].disponibilidad.start +
+                "-" +
+                postulanteTable[i].disponibilidad.end,
+              Espontáneo: postulanteTable[i].espontaneo
+            });
           }
-
         }
       }
 
@@ -1154,13 +1114,41 @@ export default {
 .margin-0 {
   margin: 0 !important;
 }
-.padding-0{
+.padding-0 {
   padding: 0 !important;
 }
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
 
-@media (max-width: 768px) {
+.flex-row-mobile {
+  display: flex;
+  flex-direction: row;
+}
+.margin-mobile {
+  margin-left: 2em;
+}
+
+@media (max-width: 767px) {
   .content-hours {
     flex-direction: column;
+  }
+
+  .flex-row-mobile {
+    flex-direction: column;
+  }
+
+  .margin-mobile {
+    margin: 1.5em;
+  }
+
+  .padding-mobile{
+    padding-top: 3em;
+  }
+
+  .v-data-table table{
+    margin-top: 3em !important;
   }
 }
 </style>
