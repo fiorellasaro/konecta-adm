@@ -257,9 +257,53 @@
             </v-card-text>
           </v-card>
         </v-dialog>
+        <v-dialog v-model="cardComments" max-width="500px">
+          <v-card>
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn color="blue darken-1" text @click="closeComments()">Cerrar</v-btn>
+            </v-card-actions>
+            <v-card-title>
+              <span class="headline">Observaciones de postulante:</span>
+              <hr />
+              <span>{{commentsItem.name}}</span>
+            </v-card-title>
+
+            <v-card-text>
+              <div class="col-12 content-hours">
+                <div v-if="addCommentState==false">
+                  <div v-if="commentsItem.comments.length==0">
+                    <p>No hay observaciones</p>
+                  </div>
+                  <div v-else>
+                    <div v-for="(comments, idx) in commentsItem.comments" :key="idx">
+                      <p>
+                        &#8226; {{comments.comment}}
+                        <span
+                          class="dateAndHour"
+                        >({{comments.date}} a las {{comments.hour}})</span>
+                      </p>
+                    </div>
+                  </div>
+                  <v-btn small color="info" @click="postComment()">Añadir</v-btn>
+                </div>
+
+                <v-col cols="12" md="6" v-else>
+                  <v-textarea
+                    solo
+                    name="input-7-4"
+                    label="Escriba su observación"
+                    v-model="textarea"
+                  ></v-textarea>
+                  <v-btn small color="info" @click="addComment(commentsItem)">Guardar</v-btn>
+                </v-col>
+              </div>
+            </v-card-text>
+          </v-card>
+        </v-dialog>
       </v-toolbar>
     </template>
-    <br>
+    <br />
     <template v-slot:item.infoPersonal="{ item }">
       <v-btn small color="info" @click="infoCard(item)">Info postulante</v-btn>
       <!-- <v-icon small @click="deleteItem(item)">delete</v-icon> -->
@@ -298,6 +342,9 @@
         </v-btn>
       </div>
     </template>
+    <template v-slot:item.comments="{ item }">
+      <v-btn small color="success" @click="addCommentsItem(item)">Ver</v-btn>
+    </template>
   </v-data-table>
 </template>
 
@@ -316,10 +363,13 @@ export default {
   },
 
   data: () => ({
-    search: '',
+    textarea: "",
+    addCommentState: false,
+    search: "",
     select: { track: "No contactad@" },
     items: [
       { track: "Agendad@" },
+      { track: "Desestimad@" },
       { track: "En sala de espera" },
       { track: "Evaluad@ - Aprobad@" },
       { track: "Evaluad@ - Rechazad@" },
@@ -336,6 +386,7 @@ export default {
     cardInfo: false,
     cardDisponibilidad: false,
     cardState: false,
+    cardComments: false,
     disponibilidad: {
       start: null,
       end: null
@@ -368,6 +419,7 @@ export default {
       { text: "Disponibilidad", value: "disponibilidad" },
       // { text: "Resultado", value: "result" },
       // { text: "IGC", value: "igc" },
+      { text: "Observación", value: "comments", sortable: false },
       { text: "Registro", value: "register" }
     ],
     editedIndex: -1,
@@ -382,6 +434,7 @@ export default {
       espontaneo: false,
       result: "",
       state: "",
+      comments: [],
 
       experience: [],
       // selectore: "",
@@ -400,6 +453,7 @@ export default {
       espontaneo: false,
       result: "",
       state: "",
+      comments: [],
       // agended: false,
       experience: [],
       // selectore: "",
@@ -418,6 +472,7 @@ export default {
       espontaneo: false,
       result: "",
       state: "",
+      comments: [],
       // agended: false,
       experience: [],
       // selectore: "",
@@ -436,6 +491,7 @@ export default {
       espontaneo: false,
       result: "",
       state: "",
+      comments: [],
       // agended: false,
       experience: [],
       // selectore: "",
@@ -454,6 +510,27 @@ export default {
       espontaneo: false,
       result: "",
       state: "",
+      comments: [],
+      // agended: false,
+      experience: [],
+      // selectore: "",
+      disponibilidad: {}
+      // igc: "",
+    },
+
+    commentsIndex: -1,
+    commentsItem: {
+      tipoDoc: "",
+      numDoc: "",
+      name: "",
+      key: "",
+      register: "",
+      infoPersonal: {},
+      formacion: {},
+      espontaneo: false,
+      result: "",
+      state: "",
+      comments: [],
       // agended: false,
       experience: [],
       // selectore: "",
@@ -472,6 +549,7 @@ export default {
       espontaneo: false,
       result: "",
       state: "",
+      comments: [],
       // agended: false,
       experience: [],
       // selectore: "",
@@ -502,6 +580,9 @@ export default {
     },
     cardState(val) {
       val || this.closeState();
+    },
+    cardComments(val) {
+      val || this.closeComments();
     }
   },
 
@@ -541,6 +622,11 @@ export default {
       this.stateIndex = this.postulanteTable.indexOf(item);
       this.stateItem = Object.assign({}, item);
       this.cardState = true;
+    },
+    addCommentsItem(item) {
+      this.commentsIndex = this.postulanteTable.indexOf(item);
+      this.commentsItem = Object.assign({}, item);
+      this.cardComments = true;
     },
     onCheckboxChange(item) {
       var updates = {};
@@ -612,6 +698,15 @@ export default {
         this.stateIndex = -1;
       }, 300);
     },
+    closeComments() {
+      this.cardComments = false;
+      this.addCommentState = false;
+      this.textarea = "";
+      setTimeout(() => {
+        this.commentsItem = Object.assign({}, this.defaultItem);
+        this.commentsIndex = -1;
+      }, 300);
+    },
     save() {
       if (this.editedIndex > -1) {
         Object.assign(this.postulanteTable[this.editedIndex], this.editedItem);
@@ -679,6 +774,9 @@ export default {
           ),
           stateDispo: this.getStateDispo(this.postulantesInfo[postulanteInfo]),
           infoPersonal: this.postulantesInfo[postulanteInfo],
+          comments: this.getCommentsPostulante(
+            this.postulantesInfo[postulanteInfo].comments
+          ),
           experience: this.getExperiencePostulante(postulanteInfo),
           postulanteProf: this.getFormacionPostulante(postulanteInfo)
         };
@@ -693,7 +791,7 @@ export default {
         i++;
       }
       // console.log(this.postulantes);
-      //console.log(this.postulanteTable);
+      // console.log(this.postulanteTable);
     },
     getLoginState: function(loginState) {
       this.loginState = loginState;
@@ -830,6 +928,11 @@ export default {
               state = "Evaluad@ - Rechazad@";
             }
           }
+          if (postulanteInfo.state.desestimar != undefined) {
+            if (postulanteInfo.state.desestimar.active) {
+              state = "Desestimad@";
+            }
+          }
         } else {
           if (postulanteInfo.agended) {
             state = "Agendad@";
@@ -863,10 +966,12 @@ export default {
               state = "Evaluad@ - Rechazad@";
             }
           }
+          if (postulanteInfo.state.desestimar != undefined) {
+            if (postulanteInfo.state.desestimar.active) {
+              state = "Desestimad@";
+            }
+          }
         }
-      }
-      if (state == undefined) {
-        state = "No entró a ningún if";
       }
       return state;
     },
@@ -944,6 +1049,17 @@ export default {
                   .ref()
                   .update(updates);
                 this.update();
+              } else {
+                if (state.track == "Desestimad@") {
+                  updates[
+                    "/POSTULANTES/" + postulanteInfo.key + "/state/desestimar/"
+                  ] = editState;
+                  firebase
+                    .database()
+                    .ref()
+                    .update(updates);
+                  this.update();
+                }
               }
             }
           }
@@ -1009,6 +1125,18 @@ export default {
                   .database()
                   .ref()
                   .update(updates);
+              } else {
+                if (oldState == "Desestimad@") {
+                  updates[
+                    "/POSTULANTES/" +
+                      postulanteInfo.key +
+                      "/state/desestimar/active/"
+                  ] = false;
+                  firebase
+                    .database()
+                    .ref()
+                    .update(updates);
+                }
               }
             }
           }
@@ -1033,7 +1161,10 @@ export default {
               Nº: postulanteTable[i].number,
               "Tipo de documento": postulanteTable[i].tipoDoc,
               "Nº de documento": postulanteTable[i].numDoc,
-              "Nombre/Nombre social completo": postulanteTable[i].name,
+              "Nombres completos": postulanteTable[i].infoPersonal.nombres,
+              "Apellido paterno": postulanteTable[i].infoPersonal.apellido_p ,
+              "Apellido materno": postulanteTable[i].infoPersonal.apellido_m ,
+              "Nombre/Nombre social": postulanteTable[i].name,
               "Estado de postulacion": postulanteTable[i].state,
               "Estado civil": postulanteTable[i].infoPersonal.estado_civil,
               "Fecha de nacimiento": postulanteTable[i].infoPersonal.fecha_nac,
@@ -1090,6 +1221,44 @@ export default {
       // }
 
       return dataTotal;
+    },
+    getCommentsPostulante(comments) {
+      let seleccionComments = [];
+      if (comments != undefined) {
+        seleccionComments = comments;
+      } else {
+        return seleccionComments;
+      }
+      return seleccionComments;
+    },
+    postComment() {
+      this.addCommentState = true;
+    },
+    addComment(commentsItem) {
+      var updates = {};
+      let newComment = this.textarea;
+
+      let date = new Date();
+      let dateString = moment().format("L");
+      let hour = date.getHours() + ":" + date.getMinutes() + "";
+
+      let editComments = {
+        comment: newComment,
+        date: dateString,
+        hour: hour
+      };
+      commentsItem.comments.push(editComments);
+    
+
+      updates["/POSTULANTES/" + commentsItem.key + "/comments/"] =
+        commentsItem.comments;
+      firebase
+        .database()
+        .ref()
+        .update(updates);
+
+      this.addCommentState = false;
+      this.textarea = "";
     }
   }
 };
@@ -1129,6 +1298,10 @@ export default {
 .margin-mobile {
   margin-left: 2em;
 }
+.dateAndHour {
+  font-size: 0.8em !important;
+  color: #4e5056 !important;
+}
 
 @media (max-width: 767px) {
   .content-hours {
@@ -1143,11 +1316,11 @@ export default {
     margin: 1.5em;
   }
 
-  .padding-mobile{
+  .padding-mobile {
     padding-top: 3em;
   }
 
-  .v-data-table table{
+  .v-data-table table {
     margin-top: 3em !important;
   }
 }
